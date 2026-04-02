@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>calculadora-enlace-wireless</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --card: #ffffff;
+      --line: #d9e2ec;
+      --text: #1f2933;
+      --muted: #52606d;
+      --primary: #0b6efd;
+      --primary-dark: #084298;
+      --ok: #198754;
+      --danger: #dc3545;
+      --soft: #eef4ff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 24px;
+    }
+    .app {
+      max-width: 1100px;
+      margin: 0 auto;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+    }
+    h1 {
+      margin: 0 0 20px;
+      font-size: 28px;
+      text-align: center;
+      color: var(--primary-dark);
+    }
+    h2 {
+      margin: 0 0 14px;
+      font-size: 20px;
+      color: var(--primary-dark);
+    }
+    .section {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 18px;
+      margin-bottom: 18px;
+      background: #fff;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+    }
+    .field label {
+      display: block;
+      font-weight: 700;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+    .field input, .field select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #cbd2d9;
+      border-radius: 8px;
+      font-size: 14px;
+      background: #fff;
+    }
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+    button {
+      border: none;
+      border-radius: 8px;
+      padding: 11px 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-secondary { background: #e9eef5; color: var(--text); }
+    .btn-danger { background: var(--danger); color: #fff; }
+    .btn-success { background: var(--ok); color: #fff; }
+    .cable-box {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 12px;
+      background: #fafcff;
+    }
+    .inline {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .muted {
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .review, .resultado {
+      white-space: pre-wrap;
+      background: #0f172a;
+      color: #e5edf7;
+      border-radius: 12px;
+      padding: 18px;
+      font-family: "Courier New", monospace;
+      font-size: 14px;
+      line-height: 1.6;
+      overflow-x: auto;
+    }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>Calculadora de Enlace Wireless</h1>
+
+    <div class="section">
+      <div class="grid">
+        <div class="field">
+          <label>Modo</label>
+          <select id="modo" onchange="alternarModo()">
+            <option value="simples">Modo simples</option>
+            <option value="repetidor">Modo com repetidor passivo</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Entradas</h2>
+      <div id="campos-simples" class="grid">
+        <div class="field"><label>Potência AP-1</label><input id="p_ap1" type="number" step="0.01" value="20"></div>
+        <div class="field"><label>Sensibilidade AP-2</label><input id="s_ap2" type="number" step="0.01" value="-70"></div>
+        <div class="field"><label>Protetores de surtos no TX</label><input id="protetor_tx" type="number" step="1" value="0"></div>
+        <div class="field"><label>Protetores de surtos no RX</label><input id="protetor_rx" type="number" step="1" value="0"></div>
+        <div class="field"><label>Ganho da Antena-1 (GA-1)</label><input id="ga1" type="number" step="0.01" value="25"></div>
+        <div class="field"><label id="lbl-ga2">Ganho da Antena-2 (GA-2)</label><input id="ga2" type="number" step="0.01" value="25"></div>
+        <div class="field hidden rep-only"><label>Ganho da Antena-3 (GA-3)</label><input id="ga3" type="number" step="0.01" value="25"></div>
+        <div class="field hidden rep-only"><label>Ganho da Antena-4 (GA-4)</label><input id="ga4" type="number" step="0.01" value="25"></div>
+        <div class="field"><label id="lbl-d1">Distância entre Antenas (D) em km</label><input id="d1" type="number" step="0.01" value="10"></div>
+        <div class="field hidden rep-only"><label>Distância entre Antenas (D2) em km</label><input id="d2" type="number" step="0.01" value="5"></div>
+        <div class="field"><label id="lbl-f1">Frequência de Transmissão</label>
+          <select id="f1">
+            <option value="2.45">2,45</option>
+            <option value="5.0">5,0</option>
+            <option value="5.8">5,8</option>
+          </select>
+        </div>
+        <div class="field hidden rep-only"><label>Frequência de Transmissão F2</label>
+          <select id="f2">
+            <option value="2.45">2,45</option>
+            <option value="5.0">5,0</option>
+            <option value="5.8">5,8</option>
+          </select>
+        </div>
+        <div class="field"><label>Quantidade de pigtails no TX</label><input id="pigtail_tx" type="number" step="1" value="0"></div>
+        <div class="field"><label>Quantidade de pigtails no RX</label><input id="pigtail_rx" type="number" step="1" value="0"></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Cabos do TX</h2>
+      <div id="cabos-tx"></div>
+      <div class="toolbar">
+        <button class="btn-success" onclick="adicionarCabo('tx')">Adicionar cabo TX</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Cabos do RX</h2>
+      <div id="cabos-rx"></div>
+      <div class="toolbar">
+        <button class="btn-success" onclick="adicionarCabo('rx')">Adicionar cabo RX</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="toolbar">
+        <button class="btn-primary" onclick="gerarRevisao()">Gerar revisão</button>
+        <button class="btn-secondary" onclick="calcular()">Confirmar e calcular</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Revisão dos dados</h2>
+      <div id="revisao" class="review"></div>
+    </div>
+
+    <div class="section">
+      <h2>Solução passo a passo</h2>
+      <div id="resultado" class="resultado"></div>
+    </div>
+  </div>
+
+<script>
+const VALOR_CONECTOR = 0.2;
+const VALOR_PIGTAIL = 1.5;
+const PERDAS_CABOS_PADRAO = {
+  2.45: {1: 1.05, 2: 0.5},
+  5.0: {1: 1.3, 2: 0.3},
+  5.8: {1: 1.7, 2: 0.93}
+};
+const NOMES_CABOS = {1: 'RG-58', 2: 'RG-213'};
+
+function fmt(valor, casas = 2) {
+  return Number(valor).toFixed(casas).replace('.', ',');
+}
+
+function alternarModo() {
+  const repetidor = document.getElementById('modo').value === 'repetidor';
+  document.querySelectorAll('.rep-only').forEach(el => el.classList.toggle('hidden', !repetidor));
+  document.getElementById('lbl-ga2').textContent = repetidor ? 'Ganho da Antena-2 (GA-2)' : 'Ganho da Antena-2 (GA-2)';
+  document.getElementById('lbl-d1').textContent = repetidor ? 'Distância entre Antenas (D1) em km' : 'Distância entre Antenas (D) em km';
+  document.getElementById('lbl-f1').textContent = repetidor ? 'Frequência de Transmissão F1' : 'Frequência de Transmissão';
+}
+
+function adicionarCabo(lado) {
+  const container = document.getElementById(`cabos-${lado}`);
+  const idx = container.children.length + 1;
+  const bloco = document.createElement('div');
+  bloco.className = 'cable-box';
+  bloco.innerHTML = `
+    <div class="inline"><strong>Cabo ${idx} do ${lado.toUpperCase()}</strong></div>
+    <div class="grid" style="margin-top:10px;">
+      <div class="field">
+        <label>Comprimento (m)</label>
+        <input type="number" step="0.01" class="comprimento" value="1">
+      </div>
+      <div class="field">
+        <label>Tipo do cabo</label>
+        <select class="tipo" onchange="togglePerdaManual(this, '${lado}')">
+          <option value="1">RG-58</option>
+          <option value="2">RG-213</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Usar perda padrão?</label>
+        <select class="usar-padrao" onchange="togglePerdaManual(this, '${lado}')">
+          <option value="s">Sim</option>
+          <option value="n">Não</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Digite a perda dB/m</label>
+        <input type="number" step="0.01" class="perda-manual" disabled>
+      </div>
+    </div>
+    <div class="toolbar">
+      <button class="btn-danger" onclick="this.closest('.cable-box').remove(); renumerarCabos('${lado}')">Remover</button>
+    </div>
+  `;
+  container.appendChild(bloco);
+  preencherPerdaPadrao(bloco, lado);
+}
+
+function renumerarCabos(lado) {
+  [...document.getElementById(`cabos-${lado}`).children].forEach((box, i) => {
+    box.querySelector('strong').textContent = `Cabo ${i + 1} do ${lado.toUpperCase()}`;
+  });
+}
+
+function freqDoLado(lado) {
+  const repetidor = document.getElementById('modo').value === 'repetidor';
+  if (lado === 'tx') return Number(document.getElementById('f1').value);
+  return repetidor ? Number(document.getElementById('f2').value) : Number(document.getElementById('f1').value);
+}
+
+function preencherPerdaPadrao(bloco, lado) {
+  const freq = freqDoLado(lado);
+  const tipo = Number(bloco.querySelector('.tipo').value);
+  const input = bloco.querySelector('.perda-manual');
+  input.value = PERDAS_CABOS_PADRAO[freq][tipo];
+}
+
+function togglePerdaManual(el, lado) {
+  const bloco = el.closest('.cable-box');
+  const usarPadrao = bloco.querySelector('.usar-padrao').value;
+  const input = bloco.querySelector('.perda-manual');
+  if (usarPadrao === 's') {
+    input.disabled = true;
+    preencherPerdaPadrao(bloco, lado);
+  } else {
+    input.disabled = false;
+    if (!input.value) input.value = '0';
+  }
+}
+
+function obterCabos(lado) {
+  const boxes = [...document.getElementById(`cabos-${lado}`).children];
+  const freq = freqDoLado(lado);
+  return boxes.map((box, i) => {
+    const comprimento = Number(box.querySelector('.comprimento').value || 0);
+    const tipo = Number(box.querySelector('.tipo').value);
+    const usarPadrao = box.querySelector('.usar-padrao').value;
+    let perda_m = 0;
+    if (usarPadrao === 's') {
+      perda_m = PERDAS_CABOS_PADRAO[freq][tipo];
+    } else {
+      perda_m = Number(box.querySelector('.perda-manual').value || 0);
+    }
+    const perda_total = comprimento * perda_m;
+    const perda_padrao = PERDAS_CABOS_PADRAO[freq][tipo];
+    const nome = perda_m === perda_padrao ? NOMES_CABOS[tipo] : `Custom (${fmt(perda_m)} dB/m)`;
+    return { indice: i + 1, comprimento, tipo, nome, perda_m, perda_total };
+  });
+}
+
+function resumoCabos(cabos) {
+  return cabos.map(c => `Cabo ${c.indice}: ${c.nome} ${fmt(c.comprimento)}m`).join(' | ');
+}
+
+function expressaoCabos(cabos) {
+  return cabos.map(c => `(${fmt(c.comprimento)} x ${fmt(c.perda_m)})`).join(' + ');
+}
+
+function totalPerdasCabos(cabos) {
+  return cabos.reduce((s, c) => s + c.perda_total, 0);
+}
+
+function perdaEspacoLivre(distancia_km, frequencia_ghz) {
+  return 92.5 + 20 * Math.log10(distancia_km * frequencia_ghz);
+}
+
+function gerarRevisao() {
+  const modo = document.getElementById('modo').value;
+  const cabosTx = obterCabos('tx');
+  const cabosRx = obterCabos('rx');
+
+  let linhas = [];
+  if (modo === 'simples') {
+    linhas = [
+      `1. Potência AP-1: ${fmt(document.getElementById('p_ap1').value)} dBm`,
+      `2. Sensibilidade AP-2: ${fmt(document.getElementById('s_ap2').value)} dBm`,
+      `3. Protetores de surtos no TX: ${document.getElementById('protetor_tx').value}`,
+      `4. Protetores de surtos no RX: ${document.getElementById('protetor_rx').value}`,
+      `5. Ganho da Antena-1 (GA-1): ${fmt(document.getElementById('ga1').value)} dBi`,
+      `6. Ganho da Antena-2 (GA-2): ${fmt(document.getElementById('ga2').value)} dBi`,
+      `7. Distância entre Antenas (D): ${fmt(document.getElementById('d1').value)} km`,
+      `8. Frequência de Transmissão: ${fmt(document.getElementById('f1').value)} GHz`,
+      `9. Cabos do TX: ${resumoCabos(cabosTx)}`,
+      `10. Cabos do RX: ${resumoCabos(cabosRx)}`,
+      `11. Quantidade de pigtails no TX: ${document.getElementById('pigtail_tx').value}`,
+      `12. Quantidade de pigtails no RX: ${document.getElementById('pigtail_rx').value}`
+    ];
+  } else {
+    linhas = [
+      `1. Potência AP1: ${fmt(document.getElementById('p_ap1').value)} dBm`,
+      `2. Sensibilidade AP2: ${fmt(document.getElementById('s_ap2').value)} dBm`,
+      `3. Protetores de surtos no TX: ${document.getElementById('protetor_tx').value}`,
+      `4. Protetores de surtos no RX: ${document.getElementById('protetor_rx').value}`,
+      `5. Ganho da Antena1 (GA-1): ${fmt(document.getElementById('ga1').value)} dBi`,
+      `6. Ganho da Antena2 (GA-2): ${fmt(document.getElementById('ga2').value)} dBi`,
+      `7. Ganho da Antena3 (GA-3): ${fmt(document.getElementById('ga3').value)} dBi`,
+      `8. Ganho da Antena4 (GA-4): ${fmt(document.getElementById('ga4').value)} dBi`,
+      `9. Distância entre Antenas (D1): ${fmt(document.getElementById('d1').value)} km`,
+      `10. Distância entre Antenas (D2): ${fmt(document.getElementById('d2').value)} km`,
+      `11. Frequência de Transmissão F1: ${fmt(document.getElementById('f1').value)} GHz`,
+      `12. Frequência de Transmissão F2: ${fmt(document.getElementById('f2').value)} GHz`,
+      `13. Cabos do TX: ${resumoCabos(cabosTx)}`,
+      `14. Cabos do RX: ${resumoCabos(cabosRx)}`,
+      `15. Quantidade de pigtails no TX: ${document.getElementById('pigtail_tx').value}`,
+      `16. Quantidade de pigtails no RX: ${document.getElementById('pigtail_rx').value}`
+    ];
+  }
+
+  document.getElementById('revisao').textContent =
+`========================================================================
+REVISÃO DOS DADOS
+========================================================================
+${linhas.join('\n')}
+========================================================================`;
+}
+
+function calcular() {
+  gerarRevisao();
+  const modo = document.getElementById('modo').value;
+  const p_ap1 = Number(document.getElementById('p_ap1').value || 0);
+  const s_ap2 = Number(document.getElementById('s_ap2').value || 0);
+  const protetor_tx = Number(document.getElementById('protetor_tx').value || 0);
+  const protetor_rx = Number(document.getElementById('protetor_rx').value || 0);
+  const ga1 = Number(document.getElementById('ga1').value || 0);
+  const ga2 = Number(document.getElementById('ga2').value || 0);
+  const pigtail_tx = Number(document.getElementById('pigtail_tx').value || 0);
+  const pigtail_rx = Number(document.getElementById('pigtail_rx').value || 0);
+  const cabosTx = obterCabos('tx');
+  const cabosRx = obterCabos('rx');
+
+  const perda_con_tx = cabosTx.length * 2 * VALOR_CONECTOR;
+  const perda_con_rx = cabosRx.length * 2 * VALOR_CONECTOR;
+  const perda_pig_tx = pigtail_tx * VALOR_PIGTAIL;
+  const perda_pig_rx = pigtail_rx * VALOR_PIGTAIL;
+  const perda_prot_tx = protetor_tx * 2.0;
+  const perda_prot_rx = protetor_rx * 2.0;
+  const perda_cabos_tx = totalPerdasCabos(cabosTx);
+  const perda_cabos_rx = totalPerdasCabos(cabosRx);
+
+  const perdas_tx = perda_cabos_tx + perda_con_tx + perda_pig_tx + perda_prot_tx;
+  const perdas_rx = perda_cabos_rx + perda_con_rx + perda_pig_rx + perda_prot_rx;
+
+  let txt = '';
+
+  if (modo === 'simples') {
+    const distancia = Number(document.getElementById('d1').value || 0);
+    const frequencia = Number(document.getElementById('f1').value || 0);
+    const p_irradiada = p_ap1 - perdas_tx + ga1;
+    const p_espaco = perdaEspacoLivre(distancia, frequencia);
+    const s_efetiva = ga2 - perdas_rx + s_ap2;
+    const p_link = p_irradiada - p_espaco + s_efetiva;
+
+    txt =
+`========================================================================
+SOLUÇÃO PASSO A PASSO - MODO SIMPLES
+========================================================================
+
+1. Potência efetivamente irradiada:
+P_irradiada = ${fmt(p_ap1)} - (${fmt(perda_pig_tx)} + ${fmt(perda_prot_tx)} + (${cabosTx.length * 2} x ${fmt(VALOR_CONECTOR, 1)}) + ${expressaoCabos(cabosTx)}) + ${fmt(ga1)}
+P_irradiada = ${fmt(p_irradiada)} dB
+
+2. Perda no espaço livre:
+P_espaco = 92,5 + 20 log (${fmt(distancia)} x ${fmt(frequencia)})
+P_espaco = ${fmt(p_espaco)} dB
+
+3. Sensibilidade efetiva do receptor:
+S_efetiva = ${fmt(ga2)} - ((${cabosRx.length * 2} x ${fmt(VALOR_CONECTOR, 1)}) + ${expressaoCabos(cabosRx)} + ${fmt(perda_prot_rx)} + ${fmt(perda_pig_rx)}) + ${fmt(s_ap2)}
+S_efetiva = ${fmt(s_efetiva)} dB
+
+4. P_link (Fade Margin):
+P_link = ${fmt(p_irradiada)} - ${fmt(p_espaco)} + ${fmt(s_efetiva)}
+P_link = ${fmt(p_link)} dB
+
+========================================================================
+Resultado final: ${fmt(p_link)} dB
+========================================================================`;
+  } else {
+    const ga3 = Number(document.getElementById('ga3').value || 0);
+    const ga4 = Number(document.getElementById('ga4').value || 0);
+    const d1 = Number(document.getElementById('d1').value || 0);
+    const d2 = Number(document.getElementById('d2').value || 0);
+    const f1 = Number(document.getElementById('f1').value || 0);
+    const f2 = Number(document.getElementById('f2').value || 0);
+
+    const p_irradiada = p_ap1 - perdas_tx + ga1;
+    const lfs1 = perdaEspacoLivre(d1, f1);
+    const g_rep = ga2 + ga3;
+    const lfs2 = perdaEspacoLivre(d2, f2);
+    const s_efetiva = ga4 - perdas_rx + s_ap2;
+    const p_link = p_irradiada - lfs1 + g_rep - lfs2 + s_efetiva;
+
+    txt =
+`========================================================================
+SOLUÇÃO PASSO A PASSO - MODO REPETIDOR PASSIVO
+========================================================================
+
+1. Potência efetivamente irradiada:
+P_irradiada = ${fmt(p_ap1)} - (${fmt(perda_pig_tx)} + ${fmt(perda_prot_tx)} + (${cabosTx.length * 2} x ${fmt(VALOR_CONECTOR, 1)}) + ${expressaoCabos(cabosTx)}) + ${fmt(ga1)}
+P_irradiada = ${fmt(p_irradiada)} dB
+
+2. Perda no espaço livre do trecho 1:
+Lfs1 = 92,5 + 20 log (${fmt(d1)} x ${fmt(f1)})
+Lfs1 = ${fmt(lfs1)} dB
+
+3. Ganho do repetidor passivo:
+G_rep = ${fmt(ga2)} + ${fmt(ga3)}
+G_rep = ${fmt(g_rep)} dBi
+
+4. Perda no espaço livre do trecho 2:
+Lfs2 = 92,5 + 20 log (${fmt(d2)} x ${fmt(f2)})
+Lfs2 = ${fmt(lfs2)} dB
+
+5. Sensibilidade efetiva do receptor:
+S_efetiva = ${fmt(ga4)} - ((${cabosRx.length * 2} x ${fmt(VALOR_CONECTOR, 1)}) + ${expressaoCabos(cabosRx)} + ${fmt(perda_prot_rx)} + ${fmt(perda_pig_rx)}) + ${fmt(s_ap2)}
+S_efetiva = ${fmt(s_efetiva)} dB
+
+6. P_link (Fade Margin):
+P_link = ${fmt(p_irradiada)} - ${fmt(lfs1)} + ${fmt(g_rep)} - ${fmt(lfs2)} + ${fmt(s_efetiva)}
+P_link = ${fmt(p_link)} dB
+
+========================================================================
+Resultado final: ${fmt(p_link)} dB
+========================================================================`;
+  }
+
+  document.getElementById('resultado').textContent = txt;
+}
+
+adicionarCabo('tx');
+adicionarCabo('rx');
+alternarModo();
+</script>
+</body>
+</html>
